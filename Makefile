@@ -5,7 +5,7 @@ WHITE  := $(shell tput setaf 7)
 CYAN   := $(shell tput setaf 6)
 RESET  := $(shell tput sgr0)
 
-.PHONY: all link install-core install-dev install-apps install-utils install-fonts install-kde install-konsave uninstall-src basic nvm typescript yay zsh tldr spotify media audio rust starship anaconda uv vscode docker firefox teams nordvpn fonts-nerd zimfw cli-tools zotero trayscale rate-mirrors openssh-askpass help
+.PHONY: all link install-core install-dev install-apps install-utils install-fonts install-kde install-konsave uninstall-src basic nvm typescript yay zsh tldr spotify media audio rust starship anaconda uv vscode docker firefox teams nordvpn fonts-nerd zimfw cli-tools zotero trayscale rate-mirrors openssh-askpass tmux-plugins help
 
 all: help
 
@@ -134,6 +134,28 @@ rate-mirrors: yay ## Install rate-mirrors for fast Arch mirror ranking
 
 openssh-askpass: yay ## Install OpenSSH askpass utility
 	yay -S --noconfirm openssh-askpass
+
+tmux: ## Install tmux
+	sudo pacman -S --noconfirm tmux
+
+tmux-plugins: tmux ## Install and configure tmux plugins via TPM
+	@echo "Installing tmux plugin manager (TPM)..."
+	@if [ ! -d "$$HOME/.tmux/plugins/tpm" ]; then \
+		git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm; \
+	else \
+		echo 'TPM already installed'; \
+	fi
+	@echo "Installing tmux plugins..."
+	@if command -v tmux >/dev/null 2>&1; then \
+		tmux new-session -d -s tmux-install || true; \
+		tmux send-keys -t tmux-install 'tmux source ~/.config/tmux/tmux.conf' Enter; \
+		tmux send-keys -t tmux-install '~/.tmux/plugins/tpm/scripts/install_plugins.sh' Enter; \
+		sleep 3; \
+		tmux kill-session -t tmux-install || true; \
+		echo 'Tmux plugins installed successfully'; \
+	else \
+		echo 'Tmux not found. Please install tmux first: sudo pacman -S tmux'; \
+	fi
 
 ## HELP
 help: ## Show this help message.

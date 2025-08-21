@@ -48,6 +48,10 @@ alias clean-pycache="find . -type d -name "__pycache__" -exec rm -r {} +"
 alias vastai='vastai_command'
 alias vastai-sync='vastai_sync_command'
 
+# Tmux deployment aliases
+alias deploy-tmux='deploy_tmux_config'
+alias ssh-tmux='ssh_with_tmux'
+
 vastai_command() {
     python -m vastai "$@"
 }
@@ -60,6 +64,33 @@ vastai_sync_command() {
     echo ""
     echo "⚙️   \033[1;34mRunning setup script on Vast.ai instance...\033[0m"
     ssh vastai-server "bash /root/vast-aws-sync.sh"
+}
+
+deploy_tmux_config() {
+    local remote_host="$1"
+    if [ -z "$remote_host" ]; then
+        echo "Usage: deploy-tmux <remote-host>"
+        echo "Example: deploy-tmux user@server.com"
+        echo "         deploy-tmux vastai-server"
+        return 1
+    fi
+    
+    "$HOME/dotfiles/.config/tmux/deploy-tmux.sh" "$remote_host"
+}
+
+ssh_with_tmux() {
+    local remote_host="$1"
+    shift
+    
+    if [ -z "$remote_host" ]; then
+        echo "Usage: ssh-tmux <remote-host> [ssh-options]"
+        echo "Example: ssh-tmux user@server.com"
+        echo "         ssh-tmux vastai-server"
+        return 1
+    fi
+    
+    echo "🚀 Deploying tmux config and connecting..."
+    deploy_tmux_config "$remote_host" && ssh "$remote_host" "$@"
 }
 copy_makefile() {
     local template_file="$HOME/dotfiles/templates/Makefile"
@@ -151,3 +182,4 @@ if [ -f /usr/share/nvm/init-nvm.sh ]; then
     source /usr/share/nvm/init-nvm.sh
 fi
 
+export PATH="$HOME/bin:$PATH"
