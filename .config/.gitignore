@@ -5,8 +5,6 @@
 !starship.toml
 
 # Unignore specific directories and all their contents
-!kitty/
 !konsave/
-!tmux/
 !nvim/
 !nvim-vscode/
