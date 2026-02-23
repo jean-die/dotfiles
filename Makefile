@@ -5,7 +5,14 @@ WHITE  := $(shell tput setaf 7)
 CYAN   := $(shell tput setaf 6)
 RESET  := $(shell tput sgr0)
 
-.PHONY: all link install-core install-dev install-apps install-utils install-fonts install-kde install-konsave uninstall-src basic nvm typescript yay zsh tldr spotify media audio rust starship anaconda uv vscode docker firefox teams nordvpn fonts-nerd zimfw cli-tools zotero trayscale rate-mirrors openssh-askpass tmux-plugins help
+.PHONY: all link help
+.PHONY: install-core install-dev install-apps install-utils install-fonts install-kde install-konsave
+.PHONY: install-core-mac install-dev-mac install-apps-mac install-fonts-mac
+.PHONY: uninstall-src basic nvm nvm-mac typescript yay zsh tldr spotify media audio
+.PHONY: rust starship starship-mac anaconda miniforge uv uv-mac vscode docker
+.PHONY: firefox teams nordvpn fonts-nerd zimfw cli-tools
+.PHONY: zotero trayscale rate-mirrors openssh-askpass tmux-plugins
+.PHONY: basic-mac cli-tools-mac tmux-mac orbstack firefox-mac teams-mac vscode-mac
 
 all: help
 
@@ -13,15 +20,28 @@ all: help
 link: ## run stow to create symlinks
 	@cd ~/dotfiles && stow .
 
-install-core: basic yay zsh zimfw cli-tools starship rust ## Install essential packages: basic, yay, zsh, zimfw, cli-tools, starship, rust
+## ARCH LINUX
+install-core: basic yay zsh zimfw cli-tools starship rust ## [Arch] Install essential packages
 
-install-dev: install-core anaconda uv vscode docker ## Install development environment: anaconda, uv, vscode, docker
+install-dev: install-core anaconda uv vscode docker ## [Arch] Install development environment
 
-install-apps: firefox teams nordvpn ## Install applications: firefox, teams, nordvpn
+install-apps: firefox teams nordvpn ## [Arch] Install applications
 
-install-fonts: fonts-nerd ## Install fonts: nerd fonts collection
+install-fonts: fonts-nerd ## [Arch] Install fonts: nerd fonts collection
 
-install-utils: zotero trayscale rate-mirrors openssh-askpass ## Install utilities: zotero, trayscale, rate-mirrors, openssh-askpass
+install-utils: zotero trayscale rate-mirrors openssh-askpass ## [Arch] Install utilities
+
+## macOS (Homebrew)
+install-core-mac: basic-mac zsh zimfw cli-tools-mac starship-mac rust ## [macOS] Install essential packages
+
+install-dev-mac: install-core-mac miniforge uv-mac vscode-mac docker-mac ## [macOS] Install dev environment: miniforge, uv, vscode, docker
+
+install-apps-mac: firefox-mac teams-mac ## [macOS] Install applications: firefox, teams
+
+install-fonts-mac: ## [macOS] Install Nerd Fonts collection via Homebrew
+	brew install --cask font-jetbrains-mono-nerd-font font-fira-code-nerd-font \
+		font-hack-nerd-font font-sauce-code-pro-nerd-font font-caskaydia-cove-nerd-font \
+		font-iosevka-nerd-font font-victor-mono-nerd-font font-ubuntu-mono-nerd-font
 
 install-kde: ## Install KDE desktop environment and utilities
 	sudo pacman -S --noconfirm plasma-desktop kdeplasma-addons sddm{,-kcm} dolphin bluedevil kscreen spectacle
@@ -32,11 +52,52 @@ install-konsave: ## Install konsave to backup KDE settings
 uninstall-src: ## Remove the src folder from dotfiles
 	@rm -rf "${HOME}/dotfiles/src" && echo "src folder removed."
 
-## INSTALL
-basic: ## Install basic packages: pkg-config, curl, git, etc.
+## INSTALL (Arch Linux)
+basic: ## [Arch] Install basic packages: pkg-config, curl, git, etc.
 	sudo pacman -S --noconfirm pkg-config curl git lua neofetch vim kitty jq stow
 
-nvm: yay ## Install nvm for Node.js version management
+## INSTALL (macOS)
+basic-mac: ## [macOS] Install basic packages via Homebrew
+	brew install pkg-config curl git lua neofetch vim jq stow neovim tmux
+	brew install --cask kitty
+
+tmux-mac: ## [macOS] Install tmux via Homebrew
+	brew install tmux
+
+cli-tools-mac: ## [macOS] Install modern CLI tools via Homebrew
+	brew install fzf ripgrep bat btop tree
+
+starship-mac: ## [macOS] Install Starship prompt via Homebrew
+	brew install starship
+
+uv-mac: ## [macOS] Install UV Python package manager via Homebrew
+	brew install uv
+
+miniforge: ## [macOS] Install Miniforge (conda for macOS ARM)
+	brew install --cask miniforge && \
+	conda init zsh
+
+vscode-mac: ## [macOS] Install Visual Studio Code via Homebrew
+	brew install --cask visual-studio-code
+
+docker-mac: ## [macOS] Install Docker Desktop
+	brew install --cask docker-desktop
+
+firefox-mac: ## [macOS] Install Firefox via Homebrew
+	brew install --cask firefox
+
+teams-mac: ## [macOS] Install Microsoft Teams via Homebrew
+	brew install --cask microsoft-teams
+
+nvm-mac: ## [macOS] Install NVM and Node.js LTS via Homebrew
+	brew install nvm && \
+	mkdir -p ~/.nvm && \
+	export NVM_DIR="$$HOME/.nvm" && \
+	. "$$(brew --prefix nvm)/nvm.sh" && \
+	nvm install --lts && \
+	nvm use --lts
+
+nvm: yay ## [Arch] Install nvm for Node.js version management
 	yay -S --noconfirm nvm && \
 	echo 'source /usr/share/nvm/init-nvm.sh' >> ~/.zshrc && \
 	nvm install --lts && \
@@ -53,7 +114,7 @@ yay: ## Install yay (AUR helper)
 zsh: yay ## Install zsh and completions (syntax highlighting already installed)
 	yay -S --noconfirm zsh zsh-completions
 
-zimfw: zsh ## Install Zim framework for zsh
+zimfw: ## Install Zim framework for zsh
 	@if [ ! -d "${HOME}/.zim" ]; then \
 		curl -fsSL https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh; \
 	else \
@@ -138,7 +199,7 @@ openssh-askpass: yay ## Install OpenSSH askpass utility
 tmux: ## Install tmux
 	sudo pacman -S --noconfirm tmux
 
-tmux-plugins: tmux ## Install and configure tmux plugins via TPM
+tmux-plugins: ## Install and configure tmux plugins via TPM
 	@echo "Installing tmux plugin manager (TPM)..."
 	@if [ ! -d "$$HOME/.tmux/plugins/tpm" ]; then \
 		git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm; \
@@ -154,7 +215,7 @@ tmux-plugins: tmux ## Install and configure tmux plugins via TPM
 		tmux kill-session -t tmux-install || true; \
 		echo 'Tmux plugins installed successfully'; \
 	else \
-		echo 'Tmux not found. Please install tmux first: sudo pacman -S tmux'; \
+		echo 'Tmux not found. Install with: brew install tmux (macOS) or sudo pacman -S tmux (Arch)'; \
 	fi
 
 ## HELP

@@ -38,7 +38,9 @@ ZSH_HIGHLIGHT_STYLES[comment]='fg=242'
 # -------------------------------------------
 alias vim="nvim"
 alias vi="vim"
-alias open="kde-open"
+if [[ "$(uname)" == "Linux" ]]; then
+    alias open="kde-open"
+fi
 alias k='kubectl'
 alias init-makefile="copy_makefile"
 
@@ -137,11 +139,19 @@ print_public_ip() {
 # -------------------------------------------
 # Environment Variables
 # -------------------------------------------
+
+# Homebrew (macOS Apple Silicon)
+if [[ "$(uname)" == "Darwin" && -f /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.npm-global/bin:$PATH"
 export TERM=xterm-256color
-export QT_QPA_PLATFORM=xcb
+if [[ "$(uname)" == "Linux" ]]; then
+    export QT_QPA_PLATFORM=xcb
+fi
 export XDG_CONFIG_HOME=$HOME/.config
 export EDITOR=nvim
 export VISUAL=nvim
@@ -163,23 +173,45 @@ fi
 # -------------------------------------------
 # Conda Initialization (This might produce console output)
 # -------------------------------------------
-__conda_setup="$('/home/agape/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/agape/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/agape/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/agape/anaconda3/bin:$PATH"
-    fi
+# Detect conda installation: miniforge (macOS) or anaconda (Linux)
+if [ -d "$HOME/miniforge3" ]; then
+    __conda_prefix="$HOME/miniforge3"
+elif [ -d "$HOME/anaconda3" ]; then
+    __conda_prefix="$HOME/anaconda3"
+elif [ -d "/opt/homebrew/Caskroom/miniforge/base" ]; then
+    __conda_prefix="/opt/homebrew/Caskroom/miniforge/base"
 fi
-unset __conda_setup
+
+if [ -n "$__conda_prefix" ]; then
+    __conda_setup="$("$__conda_prefix/bin/conda" 'shell.zsh' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
+    else
+        if [ -f "$__conda_prefix/etc/profile.d/conda.sh" ]; then
+            . "$__conda_prefix/etc/profile.d/conda.sh"
+        else
+            export PATH="$__conda_prefix/bin:$PATH"
+        fi
+    fi
+    unset __conda_setup
+fi
+unset __conda_prefix
 
 # -------------------------------------------
 # Node Version Manager
 # -------------------------------------------
 if [ -f /usr/share/nvm/init-nvm.sh ]; then
+    # Arch Linux (yay -S nvm)
     source /usr/share/nvm/init-nvm.sh
+elif [ -d "$HOME/.nvm" ]; then
+    # macOS (brew install nvm) or manual install
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+    # Homebrew NVM path
+    if command -v brew &>/dev/null; then
+        [ -s "$(brew --prefix nvm)/nvm.sh" ] && source "$(brew --prefix nvm)/nvm.sh"
+    fi
 fi
 
 export PATH="$HOME/bin:$PATH"
