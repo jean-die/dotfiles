@@ -215,3 +215,13 @@ elif [ -d "$HOME/.nvm" ]; then
 fi
 
 export PATH="$HOME/bin:$PATH"
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+export PATH="$JAVA_HOME/bin:$PATH"
+
+# -------------------------------------------
+# OLLAMA
+# -------------------------------------------
+# Use Flash Attention — reduces KV cache memory usage, minimal quality impact
+export OLLAMA_FLASH_ATTENTION=1
+# Keep model loaded indefinitely (no cold starts between sessions)
+export OLLAMA_KEEP_ALIVE=-1
